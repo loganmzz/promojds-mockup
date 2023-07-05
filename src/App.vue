@@ -36,9 +36,6 @@ const filters = reactive({
 function filterSwitch() {
   filters.displayed = !filters.displayed;
 }
-function updateFiltered() {
-
-}
 
 function ratio(updated: number, base: number): number {
   return (base - updated) * 100 / base;
@@ -65,7 +62,7 @@ function numeric(value: number): string {
   <div class="filters">
     <div @click="filterSwitch">Filters <span>{{ filters.displayed ? "hide" : "collapse" }}</span></div>
     <div v-if="filters.displayed">
-      <input v-model="filters.search" @input="updateFiltered()">
+      <input v-model="filters.search">
     </div>
   </div>
 
