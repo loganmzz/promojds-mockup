@@ -6,22 +6,22 @@ const data = reactive([
     id: '001',
     name: 'This is my first entry',
     location: 'Philibert',
-    goodPrice: 95,
-    defaultPrice: 100,
+    newPrice: 95,
+    oldPrice: 100,
   },
   {
     id: '002',
     name: 'Another entry',
     location: 'Philibert',
-    goodPrice: 88.2,
-    defaultPrice: 106.7,
+    newPrice: 88.2,
+    oldPrice: 106.7,
   },
   {
     id: '003',
     name: 'Another provider',
     location: 'La Bonne Grosse Caverne',
-    goodPrice: 10.09,
-    defaultPrice: 15,
+    newPrice: 10.09,
+    oldPrice: 15,
   },
 ]);
 const filtered = computed(() => {
@@ -71,19 +71,19 @@ function numeric(value: number): string {
       <thead>
         <tr>
           <th class="name">Name</th>
-          <th class="price">Good price</th>
+          <th class="new-price">New price</th>
           <th class="location">Location</th>
-          <th class="price optional">Default price</th>
-          <th class="discount optional">Discount</th>
+          <th class="old-price">Old price</th>
+          <th class="discount">Discount</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="item in filtered" :key="item.id">
           <td class="name">{{ item.name }}</td>
-          <td class="price money">{{ numeric(item.goodPrice) }}</td>
-          <td class="location">{{ item.location }}</td>
-          <td class="price money optional">{{ numeric(item.defaultPrice) }}</td>
-          <td class="discount percentage optional">{{ numeric(ratio(item.goodPrice, item.defaultPrice)) }}</td>
+          <td class="new-price money">{{ numeric(item.newPrice) }}</td>
+          <td class="location"><div>{{ item.location }}</div></td>
+          <td class="old-price money">{{ numeric(item.oldPrice) }}</td>
+          <td class="discount percentage">{{ numeric(ratio(item.newPrice, item.oldPrice)) }}</td>
         </tr>
       </tbody>
     </table>
@@ -110,6 +110,9 @@ th, td {
   border: 1px solid lightgray;
   padding: .2em;
 }
+td {
+  vertical-align: top;
+}
 tbody tr:nth-child(odd) {
   background-color: lightblue;
 }
@@ -129,34 +132,53 @@ td.percentage::after {
 table col.name,
 table th.name,
 table td.name {
-  width: 60%;
+  width: 50%;
 }
-table col.price,
-table th.price,
-table td.price  {
-  width: 10%;
-  min-width: 5em;
+table col.new-price,
+table th.new-price,
+table td.new-price  {
+  width: 9%;
 }
 table col.location,
 table th.location,
 table td.location  {
-  width: 10%;
-  min-width: 5em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 23%;
+}
+table col.old-price,
+table th.old-price,
+table td.old-price  {
+  width: 9%;
 }
 table col.discount,
 table th.discount,
 table td.discount  {
-  width: 15%;
-  min-width: 5em;
+  width: 9%;
 }
 
 @media (width < 900px) {
-  table col.optional,
-  table th.optional,
-  table td.optional  {
+  table col.name,
+  table th.name,
+  table td.name {
+    width: 59%;
+  }
+  table col.new-price,
+  table th.new-price,
+  table td.new-price  {
+    width: 11%;
+  }
+  table col.location,
+  table th.location,
+  table td.location  {
+    width: 30%;
+  }
+  table col.old-price,
+  table th.old-price,
+  table td.old-price  {
+    display: none;
+  }
+  table col.discount,
+  table th.discount,
+  table td.discount  {
     display: none;
   }
 }
