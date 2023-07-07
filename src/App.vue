@@ -1,30 +1,9 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import ReferentialStatus from './components/ReferentialStatus.vue';
+import ReferentialStatus from '@/components/ReferentialStatus.vue';
+import { referentialStore } from '@/stores/referential';
 
-const data = reactive([
-  {
-    id: '001',
-    name: 'This is my first entry',
-    location: 'Philibert',
-    newPrice: 95,
-    oldPrice: 100,
-  },
-  {
-    id: '002',
-    name: 'Another entry',
-    location: 'Philibert',
-    newPrice: 88.2,
-    oldPrice: 106.7,
-  },
-  {
-    id: '003',
-    name: 'Another provider',
-    location: 'La Bonne Grosse Caverne',
-    newPrice: 10.09,
-    oldPrice: 15,
-  },
-]);
+const data = reactive(referentialStore().data);
 const filtered = computed(() => {
   return filters.search ? data.filter(item => item.name.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()))
                         : data;
@@ -111,7 +90,7 @@ header {
     text-align: center;
   }
 
-  > #statusbar {
+  > .statusbar {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
