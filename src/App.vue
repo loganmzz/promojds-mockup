@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
+import ReferentialStatus from './components/ReferentialStatus.vue';
 
 const data = reactive([
   {
@@ -57,13 +58,20 @@ function numeric(value: number): string {
 
 <template>
   <section>
-  <header>promojds</header>
+  <header>
+    <div class="statusbar">
+      <ReferentialStatus></ReferentialStatus>
+    </div>
+    <h1>promojds</h1>
+  </header>
 
   <div class="filters">
-    <div @click="filterSwitch">Filters <span>{{ filters.displayed ? "hide" : "collapse" }}</span></div>
-    <div v-if="filters.displayed">
-      <input v-model="filters.search">
-    </div>
+    <div><a @click="filterSwitch">Filters {{ filters.displayed ? "hide" : "collapse" }}</a></div>
+    <div style="overflow: hidden;"><Transition name="filters-fade">
+      <div v-if="filters.displayed">
+        <input v-model="filters.search">
+      </div>
+    </Transition></div>
   </div>
 
   <main>
@@ -90,96 +98,50 @@ function numeric(value: number): string {
   </main></section>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// Root
 #app > * {
   margin: 1em;
   padding: 1em;
 }
+
+// Header
 header {
-  text-align: center;
-  font-size: 2em;
-}
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-tr {
-  max-height: 1.2em;
-}
-th, td {
-  border: 1px solid lightgray;
-  padding: .2em;
-}
-td {
-  vertical-align: top;
-}
-tbody tr:nth-child(odd) {
-  background-color: lightblue;
+  > h1 {
+    text-align: center;
+  }
+
+  > #statusbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 
-td.money,
-td.percentage {
-  text-align: right;
-}
-td.money::after {
-  content: " €";
-}
-td.percentage::after {
-  content: " %";
+// Table
+@mixin table_width($column, $width) {
+  table col.#{$column},
+  table th.#{$column},
+  table td.#{$column} {
+    @if $width != 0 {
+        width: $width;
+    } @else {
+        display: none;
+    }
+  }
 }
 
-
-table col.name,
-table th.name,
-table td.name {
-  width: 50%;
-}
-table col.new-price,
-table th.new-price,
-table td.new-price  {
-  width: 9%;
-}
-table col.location,
-table th.location,
-table td.location  {
-  width: 23%;
-}
-table col.old-price,
-table th.old-price,
-table td.old-price  {
-  width: 9%;
-}
-table col.discount,
-table th.discount,
-table td.discount  {
-  width: 9%;
-}
+@include table_width(name, 50%);
+@include table_width(new-price, 9%);
+@include table_width(location, 23%);
+@include table_width(old-price, 9%);
+@include table_width(discount, 9%);
 
 @media (width < 900px) {
-  table col.name,
-  table th.name,
-  table td.name {
-    width: 59%;
-  }
-  table col.new-price,
-  table th.new-price,
-  table td.new-price  {
-    width: 11%;
-  }
-  table col.location,
-  table th.location,
-  table td.location  {
-    width: 30%;
-  }
-  table col.old-price,
-  table th.old-price,
-  table td.old-price  {
-    display: none;
-  }
-  table col.discount,
-  table th.discount,
-  table td.discount  {
-    display: none;
-  }
+  @include table_width(name, 59%);
+  @include table_width(new-price, 11%);
+  @include table_width(location, 30%);
+  @include table_width(old-price, 0);
+  @include table_width(discount, 0);
 }
 </style>
