@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import ReferentialStatus from '@/components/ReferentialStatus.vue';
-import { referentialStore } from '@/stores/referential';
+import { useReferentialStore } from '@/stores/referential';
 
-const data = reactive(referentialStore().data);
+const referential = useReferentialStore();
+// const data = recomputed(() => referential.data);
 const filtered = computed(() => {
-  return filters.search ? data.filter(item => item.name.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()))
-                        : data;
+  return filters.search ? referential.data.filter(item => item.name.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()))
+                        : referential.data;
 });
 
 const filters = reactive({
@@ -33,6 +34,10 @@ function numeric(value: number): string {
   }
   return result;
 }
+
+onMounted(() => {
+  referential.load();
+});
 </script>
 
 <template>

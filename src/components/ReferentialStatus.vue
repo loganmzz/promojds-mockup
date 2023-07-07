@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { referentialStore } from '@/stores/referential';
+import { useReferentialStore } from '@/stores/referential';
+import { computed } from 'vue';
 
-const status = referentialStore().status;
+const referential = useReferentialStore();
+const status = computed(() => referential.status);
 </script>
 
 <template>
