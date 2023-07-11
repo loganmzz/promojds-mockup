@@ -46,28 +46,49 @@ function mapData(input: InData): Data {
 
 interface State {
     status: string;
+    lastUpdate?: string;
     data: Data;
 }
 
 export const useReferentialStore = defineStore('referential', {
     state: (): State => ({
         status: 'Unknown',
+        lastUpdate: undefined,
         data: reactive([]),
     }),
     actions: {
       async load() {
-        console.log(`load > current: ${this.status}`);
-        console.log(`load > loading`);
+        console.log(`load > loading ${this.status} | ${this.lastUpdate}`);
         this.status = 'Loading';
-        const response = await fetch('data.json');
+        let response = await fetch('data/index.json');
         if (!response.ok) {
-          this.status = `Error (${response.status} ${response.statusText})`;
-        } else {
-          const data: InData = await response.json();
-          this.data = reactive(mapData(data));
-          console.log(`Counts: ${this.data.length}`);
-          this.status = `Loaded (${this.data.length})`;
+          this.status = `Error (index: ${response.status} ${response.statusText})`;
+          return;
         }
+        const index: {last: string} = await response.json();
+        this.status = `Loading (index: ${index.last})`;
+        response = await fetch(`data/${index.last}/index.json`);
+        if (!response.ok) {
+          this.status = `Error (data/index: ${response.status} ${response.statusText})`;
+          return;
+        }
+        const dataIndex: {date: string} = await response.json();
+        if (this.lastUpdate !== undefined && this.lastUpdate >= dataIndex.date) {
+          console.log(`load > up-to-date (${this.lastUpdate})`);
+          this.status = `Loaded (uptodate)`;
+          return;
+        }
+        console.log(`load > fetch ${index.last} | ${dataIndex.date}`);
+        response = await fetch(`data/${index.last}/data.json`);
+        if (!response.ok) {
+          this.status = `Error (data/data: ${response.status} ${response.statusText})`;
+          return;
+        }
+        const data: InData = await response.json();
+        this.data = reactive(mapData(data));
+        console.log(`Counts: ${this.data.length}`);
+        this.status = `Loaded (${this.data.length})`;
+        this.lastUpdate = dataIndex.date;
       }
     }
 });
