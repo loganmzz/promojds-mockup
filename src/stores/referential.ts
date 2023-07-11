@@ -46,18 +46,21 @@ function mapData(input: InData): Data {
 
 interface State {
     status: string;
-    lastUpdate?: string;
+    lastUpdate: string|null;
     data: Data;
 }
 
 export const useReferentialStore = defineStore('referential', {
     state: (): State => ({
         status: 'Unknown',
-        lastUpdate: undefined,
+        lastUpdate: null,
         data: reactive([]),
     }),
     actions: {
       async load() {
+        if (this.lastUpdate === null) {
+          this.lastUpdate = localStorage.getItem('CACHE_LAST_UPDATE');
+        }
         console.log(`load > loading ${this.status} | ${this.lastUpdate}`);
         this.status = 'Loading';
         let response = await fetch('data/index.json');
@@ -73,10 +76,19 @@ export const useReferentialStore = defineStore('referential', {
           return;
         }
         const dataIndex: {date: string} = await response.json();
-        if (this.lastUpdate !== undefined && this.lastUpdate >= dataIndex.date) {
-          console.log(`load > up-to-date (${this.lastUpdate})`);
-          this.status = `Loaded (uptodate)`;
-          return;
+        if (this.lastUpdate !== null && this.lastUpdate >= dataIndex.date) {
+          if (this.data.length === 0) {
+            const cache = localStorage.getItem('CACHE_DATA');
+            if (cache) {
+              console.log(`load > restore cache (${this.lastUpdate})`);
+              this.data = JSON.parse(cache);
+            }
+          }
+          if (this.data.length > 0) {
+            console.log(`load > up-to-date (${this.lastUpdate})`);
+            this.status = `Loaded (uptodate)`;
+            return;
+          }
         }
         console.log(`load > fetch ${index.last} | ${dataIndex.date}`);
         response = await fetch(`data/${index.last}/data.json`);
@@ -89,6 +101,8 @@ export const useReferentialStore = defineStore('referential', {
         console.log(`Counts: ${this.data.length}`);
         this.status = `Loaded (${this.data.length})`;
         this.lastUpdate = dataIndex.date;
+        localStorage.setItem('CACHE_DATA', JSON.stringify(this.data));
+        localStorage.setItem('CACHE_LAST_UPDATE', this.lastUpdate);
       }
     }
 });
