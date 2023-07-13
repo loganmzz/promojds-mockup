@@ -8,7 +8,7 @@ export type InDataIndex = {
 
 export type InData = {
     articles: {
-      id: string,
+      id: number,
       titre: string,
       oldPrice: string,
       newPrice: string,
@@ -33,13 +33,14 @@ export type InData = {
       isInStockNumeric: number,
     }[],
 };
-export type Data = {id: string, name: string, location: string, newPrice: number, oldPrice: number}[];
+export type Item = {id: string, name: string, location: string, newPrice: number, oldPrice: number}
+export type Data = Item[];
 
 export function mapData(input: InData): Data {
     const data: Data = [];
     for (const article of input.articles) {
         data.push({
-        id: article.id,
+        id: `${article.id}`,
         name: article.titre,
         location: article.boutique.nom,
         newPrice: article.newPriceNumeric,

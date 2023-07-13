@@ -6,7 +6,7 @@ import { useReferentialStore } from '@/stores/referential';
 const referential = useReferentialStore();
 // const data = recomputed(() => referential.data);
 const filtered = computed(() => {
-  return filters.search ? referential.data.filter(item => item.name.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()))
+  return filters.search ? referential.index.search(filters.search).map(entry => entry.item)
                         : referential.data;
 });
 
@@ -16,6 +16,10 @@ const filters = reactive({
 });
 function filterSwitch() {
   filters.displayed = !filters.displayed;
+}
+function findSimilar(content: string) {
+  filters.displayed = true;
+  filters.search = content;
 }
 
 function ratio(updated: number, base: number): number {
@@ -71,7 +75,7 @@ onMounted(() => {
       </thead>
       <tbody>
         <tr v-for="item in filtered" :key="item.id">
-          <td class="name">{{ item.name }}</td>
+          <td class="name"><a @click="findSimilar(item.name)">🔎</a> {{ item.name }}</td>
           <td class="new-price money">{{ numeric(item.newPrice) }}</td>
           <td class="location"><div>{{ item.location }}</div></td>
           <td class="old-price money">{{ numeric(item.oldPrice) }}</td>
