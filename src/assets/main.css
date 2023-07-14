@@ -3,7 +3,7 @@
 #app {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0.5rem;
 
   font-weight: normal;
 
@@ -19,31 +19,7 @@ a:hover {
   cursor: pointer;
 }
 
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-tr {
-  max-height: 1.2em;
-}
-th, td {
-  border: 1px solid lightgray;
-  padding: .2em;
-}
-td {
-  vertical-align: top;
-}
-tbody tr:nth-child(odd) {
-  background-color: lightblue;
-}
-
-td.money,
-td.percentage {
-  text-align: right;
-}
-td.money::after {
-  content: " €";
-}
-td.percentage::after {
-  content: " %";
+#app .ag-cell-wrap-text .ag-cell-value {
+  word-wrap: break-word;
+  word-break: keep-all;
 }

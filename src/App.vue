@@ -1,10 +1,103 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
 import ReferentialStatus from '@/components/ReferentialStatus.vue';
 import { useReferentialStore } from '@/stores/referential';
+import { computed, onMounted, reactive, ref, type UnwrapNestedRefs } from 'vue';
+import { AgGridVue } from "ag-grid-vue3";  // the AG Grid Vue Component
+
+import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
+import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
+import { storeToRefs } from 'pinia';
+import {
+  type AbstractColDef,
+  type AgGridEvent,
+  type DataTypeDefinition,
+  type FirstDataRenderedEvent,
+  type GridSizeChangedEvent,
+  type ICellRendererComp,
+  type ICellRendererParams,
+} from 'ag-grid-community';
+
+class ItemNameCellRenderer implements ICellRendererComp {
+  readonly gui: HTMLElement = document.createElement("span");
+
+  init(params: ICellRendererParams) {
+    this.refresh(params);
+  }
+  getGui(): HTMLElement {
+    return this.gui;
+  }
+  destroy() {
+
+  }
+  refresh(params: ICellRendererParams): boolean {
+    this.gui.innerHTML = `<a @click="findSimilar(item.name)">🔎</a>${params.value}`;
+    const actionLink = this.gui.querySelector('a');
+    actionLink?.addEventListener('click', () => findSimilar(params.value));
+    return true;
+  }
+}
+
+const columnDefs: UnwrapNestedRefs<{value: AbstractColDef[]}> = reactive({
+  value: [
+    {
+      headerName: 'Article',
+      field: 'name',
+      width: 500,
+      wrapText: true,
+      autoHeight: true,
+      cellRenderer: ItemNameCellRenderer,
+    },
+    {
+      headerName: 'Prix',
+      field: 'newPrice',
+      cellDataType: 'money',
+      width: 91,
+      suppressSizeToFit: true,
+      type: 'numericColumn',
+      headerClass: '',
+    },
+    {
+      headerName: '',
+      field: 'oldPrice',
+      cellDataType: 'money',
+      width: 91,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: 'Boutique',
+      field: 'location',
+      width: 140,
+    },
+    {
+      colId: 'discount',
+      headerName: 'Réduction',
+      valueGetter: (params: any) => ratio(params.data.newPrice, params.data.oldPrice),
+      cellDataType: 'percentage',
+      width: 119,
+      suppressSizeToFit: true,
+    },
+  ]
+});
+
+const dataTypeDefinitions: {[cellDataType: string]: DataTypeDefinition<any>;} = {
+  money: {
+    baseDataType: 'number',
+    extendsDataType: 'number',
+    valueFormatter: (params: any) => `${numeric(params.value)} €`,
+  },
+  percentage: {
+    baseDataType: 'number',
+    extendsDataType: 'number',
+    valueFormatter: (params: any) => `${numeric(params.value)} %`,
+  },
+}
+
+const defaultColDef = {
+  sortable: true,
+};
 
 const referential = useReferentialStore();
-// const data = recomputed(() => referential.data);
+const { data } = storeToRefs(referential);
 const filtered = computed(() => {
   return filters.search ? referential.index.search(filters.search).map(entry => entry.item)
                         : referential.data;
@@ -20,6 +113,29 @@ function filterSwitch() {
 function findSimilar(content: string) {
   filters.displayed = true;
   filters.search = content;
+}
+function clearSearchFilter() {
+  filters.search = '';
+}
+
+function fit(event: AgGridEvent) {
+  setTimeout(() => {
+    // console.log('fit');
+    event.api.sizeColumnsToFit();
+    // event.columnApi.getAllDisplayedColumns().forEach(c => {
+    //   console.log(`${c.getColId()}.width=${c.getActualWidth()}`);
+    // });
+  });
+}
+function onFirstDataRendered(event: FirstDataRenderedEvent) {
+  fit(event);
+}
+
+function gridSizeChanged(event: GridSizeChangedEvent) {
+  // console.log('clientWidth:', event.clientWidth);
+  const small = event.clientWidth < 950;
+  event.columnApi.setColumnsVisible(['oldPrice', 'discount'], !small);
+  fit(event);
 }
 
 function ratio(updated: number, base: number): number {
@@ -45,56 +161,51 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
   <header>
+    <div class="filler"></div>
+    <h1>promojds</h1>
     <div class="statusbar">
       <ReferentialStatus></ReferentialStatus>
     </div>
-    <h1>promojds</h1>
   </header>
-
-  <div class="filters">
-    <div><a @click="filterSwitch">Filters {{ filters.displayed ? "hide" : "collapse" }}</a></div>
-    <div style="overflow: hidden;"><Transition name="filters-fade">
-      <div v-if="filters.displayed">
-        <input v-model="filters.search">
-      </div>
-    </Transition></div>
-  </div>
-
   <main>
-    <table>
-      <thead>
-        <tr>
-          <th class="name">Name</th>
-          <th class="new-price">New price</th>
-          <th class="location">Location</th>
-          <th class="old-price">Old price</th>
-          <th class="discount">Discount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in filtered" :key="item.id">
-          <td class="name"><a @click="findSimilar(item.name)">🔎</a> {{ item.name }}</td>
-          <td class="new-price money">{{ numeric(item.newPrice) }}</td>
-          <td class="location"><div>{{ item.location }}</div></td>
-          <td class="old-price money">{{ numeric(item.oldPrice) }}</td>
-          <td class="discount percentage">{{ numeric(ratio(item.newPrice, item.oldPrice)) }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </main></section>
+    <div class="filters">
+      <div><a @click="filterSwitch">Filters {{ filters.displayed ? "hide" : "collapse" }}</a></div>
+      <div style="overflow: hidden;"><Transition name="filters-fade">
+        <div v-if="filters.displayed">
+          <input v-model="filters.search"><a @click="clearSearchFilter">❌</a>
+        </div>
+      </Transition></div>
+    </div>
+    <div class="gridcontainer">
+    <ag-grid-vue
+        class="ag-theme-alpine fullheight"
+        :dataTypeDefinitions="dataTypeDefinitions"
+        :defaultColDef="defaultColDef"
+        :columnDefs="columnDefs.value"
+        :rowData="filtered"
+        @firstDataRendered="onFirstDataRendered"
+        @gridSizeChanged="gridSizeChanged"
+    >
+    </ag-grid-vue>
+  </div>
+  </main>
 </template>
 
-<style lang="scss" scoped>
-// Root
-#app > * {
-  margin: 1em;
-  padding: 1em;
+<style lang="scss">
+.ag-cell-value[col-id="oldPrice"] {
+  text-decoration: line-through;
+  color: #dc2f2f;
 }
+</style>
 
+<style lang="scss" scoped>
 // Header
 header {
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-between;
+
   > h1 {
     text-align: center;
   }
@@ -106,30 +217,17 @@ header {
   }
 }
 
-// Table
-@mixin table_width($column, $width) {
-  table col.#{$column},
-  table th.#{$column},
-  table td.#{$column} {
-    @if $width != 0 {
-        width: $width;
-    } @else {
-        display: none;
-    }
-  }
+// Main
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
 }
-
-@include table_width(name, 50%);
-@include table_width(new-price, 9%);
-@include table_width(location, 23%);
-@include table_width(old-price, 9%);
-@include table_width(discount, 9%);
-
-@media (width < 900px) {
-  @include table_width(name, 59%);
-  @include table_width(new-price, 11%);
-  @include table_width(location, 30%);
-  @include table_width(old-price, 0);
-  @include table_width(discount, 0);
+.gridcontainer {
+  flex: 1 1 auto;
+}
+.fullheight {
+  height: 100%;
 }
 </style>
