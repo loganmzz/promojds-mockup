@@ -192,6 +192,8 @@ onMounted(() => {
         :rowData="filtered"
         @firstDataRendered="onFirstDataRendered"
         @gridSizeChanged="gridSizeChanged"
+        pagination="true"
+        paginationPageSize="100"
     >
     </ag-grid-vue>
   </div>
@@ -229,6 +231,7 @@ main {
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
+  padding-bottom: 30px;
 }
 .gridcontainer {
   flex: 1 1 auto;
