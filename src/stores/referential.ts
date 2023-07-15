@@ -22,6 +22,9 @@ export const useReferentialStore = defineStore('referential', {
           [],
           {
             keys: ['name'],
+            includeScore: true,
+            minMatchCharLength: 2,
+            ignoreLocation: true,
           }
         ),
     }),

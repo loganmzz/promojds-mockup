@@ -99,8 +99,12 @@ const defaultColDef = {
 const referential = useReferentialStore();
 const { data } = storeToRefs(referential);
 const filtered = computed(() => {
-  return filters.search ? referential.index.search(filters.search).map(entry => entry.item)
-                        : referential.data;
+  return filters.search
+    ? referential.index
+        .search(filters.search)
+        .filter(entry => (entry.score ?? 0) < 0.3)
+        .map(entry => entry.item)
+    : referential.data;
 });
 
 const filters = reactive({
