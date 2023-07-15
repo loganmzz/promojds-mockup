@@ -19,6 +19,11 @@ a:hover {
   cursor: pointer;
 }
 
+.ag-theme-alpine {
+  --ag-grid-size: 3px !important;
+  --ag-row-height: 30px !important;
+}
+
 #app .ag-cell-wrap-text .ag-cell-value {
   word-wrap: break-word;
   word-break: keep-all;
